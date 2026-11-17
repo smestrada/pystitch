@@ -56,10 +56,10 @@
 
 **Files:** update `docs/goal-progress.md` and plan checkboxes with evidence.
 
-- [ ] Obtain one fresh branch review using the execution skill's review instructions; resolve important findings with focused regression tests.
-- [ ] Verify package artifacts and hosted results for the exact PR revision.
-- [ ] Merge through normal protection, sync local main and verify main's checks.
-- [ ] Close #5/update roadmap only after the acceptance criteria are demonstrated. Record versions, commands, links and any outstanding limitations.
+- [x] Obtain one fresh branch review using the execution skill's review instructions; resolve important findings with focused regression tests.
+- [x] Verify package artifacts and hosted results for the exact PR revision.
+- [x] Merge through normal protection, sync local main and verify main's checks.
+- [x] Close #5/update roadmap only after the acceptance criteria are demonstrated. Record versions, commands, links and any outstanding limitations.
 
 ## Authoritative completion evidence
 

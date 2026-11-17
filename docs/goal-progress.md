@@ -6,8 +6,8 @@ Objective: deliver the software milestone of [roadmap #9](https://github.com/sme
 
 | Issue | Deliverable | State | Evidence |
 |---|---|---|---|
-| #5 | Python 3.14, wheel/sdist CI, complete required merge gate | In progress | Plan: `docs/superpowers/plans/2026-11-16-distribution-ci.md` |
-| #2 | Non-mutating inspection API and explicit units | Pending | Depends on measurable generated patterns |
+| #5 | Python 3.14, wheel/sdist CI, complete required merge gate | Complete | PR #11; main 3419986; run 43993050405 and CodeQL 43993049870 passed |
+| #2 | Non-mutating inspection API and explicit units | In progress | Plan: `docs/superpowers/plans/2026-11-16-inspection.md`; 14 inspection regressions |
 | #4 | Atomic path writes and clear IO errors | Pending | Failure-injection coverage required |
 | #3 | Generic preflight and opt-in SE700 profile | Pending | Builds on #2; official machine references required |
 | #8 | Installed inspect/preview/validate/convert CLI | Pending | Builds on #2/#3/#4, artifact verification |
@@ -49,3 +49,13 @@ Independent whole-branch review of dbdc82c..44b09b7 found no Critical/Important 
 Exact aggregate shell script rejected all failure/cancelled/skipped/empty dependency combinations and accepted only success/success (25 cases). Protection transition was read back with 16 contexts (old15 plus aggregate), then migrated to the proven CI required context. Strict freshness, PRs, administrator enforcement, resolved conversations, and force-push/deletion blocks remain enabled. No check was bypassed.
 
 Final review: no new findings; hosted execution and action/protection evidence not independently judged by the reviewer were checked by the parent.
+
+### Issue #5: integrated
+
+PR #11 merged as 3419986. Exact-head PR run 43992522460 and merged main run 43993050405 passed all 22 jobs; main CodeQL 43993049870 passed. Issue #5 closed with acceptance evidence; #9 updated. Local main synced and clean before #2 branch.
+
+### Issue #2: inspection implementation
+
+Branch feat/design-inspection, baseline 3419986. Schema v1 public inspect_pattern reports stored records without normalization. Explicit mm bounds include origin and all ordinary endpoints (including trims), separately from needle-down bounds. Unknown/invalid/unresolved commands and records after END mark measurements incomplete. Raw coordinate convention is conservative and does not simulate machine execution. Ruling: incomplete observed data is retained with completeness flags instead of inventing final geometry; later validation must treat false flags as undetermined. Cost if wrong is consumers ignoring flags, mitigated by prominent docs and future validation tests.
+
+RED: public API availability assertion failed before implementation. Additional overflow-completeness test failed before correction. GREEN: 259 library tests OK (2 skips), including 14 new inspection tests; nine infrastructure tests OK. Graph updated. Independent review and artifact/hosted checks pending.

@@ -6,6 +6,8 @@ Python library for the reading and writing of embroidery files.
 
 Compatible with Python >=3.9
 
+This fork provides a [non-mutating inspection API](docs/inspection.md) with millimeter bounds, command counts, length summaries and diagnostics.
+
 
 To install:
 ```bash
