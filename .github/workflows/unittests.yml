@@ -5,12 +5,10 @@ permissions:
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
   push:
-    paths:
-      - '**.py'
-      - '.github/workflows/unittests.yml'
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: unittests-${{ github.ref }}
@@ -22,54 +20,101 @@ defaults:
 
 jobs:
   unittests:
-
     name: ${{ matrix.os }}+py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
-        # Python 3.9 builds are unavailable on newer ubuntu-latest images.
-        # Keep the declared minimum Python version covered on a supported image.
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
         exclude:
           - os: ubuntu-latest
             python-version: '3.9'
         include:
+          # Official Python 3.9 builds are unavailable on Ubuntu 26.04.
           - os: ubuntu-24.04
             python-version: '3.9'
-
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, node24
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0, node24
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Identify interpreter and install package
+        run: |
+          python --version
+          python -m pip install --disable-pip-version-check .
+          python -c "from pathlib import Path; import pystitch; print(pystitch.__file__); assert not Path(pystitch.__file__).resolve().is_relative_to(Path.cwd().resolve())"
+      - name: Run library tests
+        run: python -m unittest discover test -v
 
-    - name: Checkout ${{ github.ref }}
-      uses: actions/checkout@v4
+  distributions:
+    name: Distribution (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, node24
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0, node24
+        with:
+          python-version: '3.14'
+      - name: Test verification helpers
+        run: python -m unittest discover tests_infrastructure -v
+      - name: Build and validate distribution metadata
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-ci.txt
+          python -m build --outdir dist
+          python -m twine check --strict dist/*
+      - name: Test isolated wheel and source-distribution installations
+        run: >-
+          python scripts/verify_distribution.py
+          --wheel dist/*.whl --sdist dist/*.tar.gz
+          --report "${{ runner.temp }}/distribution-report.json"
+          --work-dir "${{ runner.temp }}/distribution-verification"
+      - name: Publish verification summary
+        if: always()
+        env:
+          REPORT: ${{ runner.temp }}/distribution-report.json
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = Path(os.environ['REPORT'])
+          if report.exists():
+              data = json.loads(report.read_text(encoding='utf-8'))
+              lines = ['## Distribution verification', '', 'Status: ' + data['status']]
+              for kind, result in data.get('installs', {}).items():
+                  lines.append('- ' + kind + ': ' + '; '.join(result['summary']))
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+                  summary.write('\n'.join(lines) + '\n')
+          PY
+      - name: Upload distributions and verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, node24
+        with:
+          name: distributions-${{ matrix.os }}-py3.14
+          if-no-files-found: error
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            ${{ runner.temp }}/distribution-report.json
+            ${{ runner.temp }}/distribution-verification/*/*.log
+            ${{ runner.temp }}/distribution-verification/*/import.json
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Identify precise Python version
-      shell: bash
-      run: python --version
-
-    - name: List environment
-      env:
-        GITHUB_CONTEXT: ${{ toJSON(github) }}
-        JOB_CONTEXT: ${{ toJSON(job) }}
-        STEPS_CONTEXT: ${{ toJSON(steps) }}
-        RUNNER_CONTEXT: ${{ toJSON(runner) }}
-        STRATEGY_CONTEXT: ${{ toJSON(strategy) }}
-        MATRIX_CONTEXT: ${{ toJSON(matrix) }}
-      run: |
-        pip list
-        env
-
-    - name: Run Unittests
-      run: |
-        pip install .
-        python -m unittest discover test -v
-        if ${{ matrix.experimental }} == true; then
-            exit 0
-        fi
+  ci-required:
+    name: CI required
+    needs: [unittests, distributions]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every test and distribution job to pass
+        env:
+          UNIT_RESULT: ${{ needs.unittests.result }}
+          DIST_RESULT: ${{ needs.distributions.result }}
+        run: |
+          printf 'Unit matrix: %s\nDistribution matrix: %s\n' "$UNIT_RESULT" "$DIST_RESULT"
+          test "$UNIT_RESULT" = success && test "$DIST_RESULT" = success
