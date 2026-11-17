@@ -107,6 +107,15 @@ def encode_record(x, y, flags):
     return bytes(bytearray([b0, b1, b2]))
 
 
+def _trim_step(position, lower, upper):
+    """Choose an inward half-step whose full excursion stays in the bounds."""
+    before = position - lower
+    after = upper - position
+    if after >= before:
+        return min(2, max(0, int(after / 2)))
+    return -min(2, max(0, int(before / 2)))
+
+
 def write(pattern: EmbPattern, f: BinaryIO, settings=None):
     extended_header = False
     trim_at = 3
@@ -178,11 +187,17 @@ def write(pattern: EmbPattern, f: BinaryIO, settings=None):
         xx += dx
         yy += dy
         if data == TRIM:
-            delta = -4
-            f.write(encode_record(-delta / 2, -delta / 2, JUMP))
+            # Encode the trim towards the interior, rather than straddling
+            # an edge. Keep every intermediate jump inside the design bounds.
+            step_x = _trim_step(xx, bounds[0], bounds[2])
+            step_y = _trim_step(yy, bounds[1], bounds[3])
+            f.write(encode_record(step_x, step_y, JUMP))
+            offset_x, offset_y = step_x, step_y
             for p in range(1, trim_at - 1):
-                f.write(encode_record(delta, delta, JUMP))
-                delta = -delta
-            f.write(encode_record(delta / 2, delta / 2, JUMP))
+                sign = 1 if p % 2 else -1
+                f.write(encode_record(sign * step_x, sign * step_y, JUMP))
+                offset_x += sign * step_x
+                offset_y += sign * step_y
+            f.write(encode_record(-offset_x, -offset_y, JUMP))
         else:
             f.write(encode_record(dx, dy, data))

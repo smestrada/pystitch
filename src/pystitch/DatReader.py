@@ -76,7 +76,7 @@ def read_barudan_dat(f: BinaryIO, out: EmbPattern):
         if 0x09 <= command <= 0x17:
             # C01 - C14
             needle = command - 0x08
-            out.needle_out(needle)
+            out.needle_change(needle)
             if dx != 0 or dy != 0:
                 out.move(dx, dy)
             continue
