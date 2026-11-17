@@ -4,7 +4,7 @@
 
 **Goal:** Complete issue #5 with Python 3.14 coverage and independently installed wheel/sdist checks, while preserving effective merge protection.
 
-**Architecture:** Keep the 3-OS interpreter matrix for Python 3.9â€“3.14. Add distribution jobs on Python 3.14 for all three OSes. A standard-library helper validates archives, installs each artifact into a fresh environment, proves import origin outside the checkout and runs copied library tests. A stable required gate depends on every test/distribution job.
+**Architecture:** Keep the 3-OS interpreter matrix for Python 3.9–3.14. Add distribution jobs on Python 3.14 for all three OSes. A standard-library helper validates archives, installs each artifact into a fresh environment, proves import origin outside the checkout and runs copied library tests. A stable required gate depends on every test/distribution job.
 
 **Tech Stack:** Python unittest/venv/zipfile/tarfile, PEP 517 build, twine check, GitHub Actions. Build tools are development-only dependencies.
 
@@ -45,12 +45,12 @@
 
 **Interfaces:** jobs `unittests`, `distributions`, `ci-required`; required status context `CI required`. Distribution jobs call Task 1's CLI; the aggregate requires both job-group results to equal `success`.
 
-- [ ] Verify Python manifest availability and action runtimes/tags from official repositories.
-- [ ] Extend interpreter matrix to 3.14; retain 3.9 exception. Build/check wheel+sdist and run isolated artifact checks on each OS. Upload artifacts, reports and logs.
-- [ ] Run infrastructure and existing library tests locally; parse workflow structure and review failure paths.
-- [ ] Push focused branch and open PR with issue acceptance/validation details. Expect all 18 unit jobs, 3 distribution jobs, aggregate and CodeQL to pass.
-- [ ] Preserve required old contexts while adding the proven aggregate; remove old names only once equivalent complete enforcement is verified.
-- [ ] Commit workflow, metadata and usage documentation.
+- [x] Verify Python manifest availability and action runtimes/tags from official repositories.
+- [x] Extend interpreter matrix to 3.14; retain 3.9 exception. Build/check wheel+sdist and run isolated artifact checks on each OS. Upload artifacts, reports and logs.
+- [x] Run infrastructure and existing library tests locally; parse workflow structure and review failure paths.
+- [x] Push focused branch and open PR with issue acceptance/validation details. Expect all 18 unit jobs, 3 distribution jobs, aggregate and CodeQL to pass.
+- [x] Preserve required old contexts while adding the proven aggregate; remove old names only once equivalent complete enforcement is verified.
+- [x] Commit workflow, metadata and usage documentation.
 
 ### Task 3: Review and integrate
 
