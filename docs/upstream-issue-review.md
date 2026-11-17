@@ -19,7 +19,7 @@ The assignment algorithm and palette strategy are adapted from PR #139 by GitHub
 |---|---|
 | [#143 DSB writer proposal](https://github.com/inkstitch/pystitch/issues/143) | New export format, not a confirmed regression. Defer until we have independently verified reference files and a use for DSB. |
 | [#137 format plugins](https://github.com/inkstitch/pystitch/issues/137) | Architectural enhancement; no need to change the format-registration system for SE700/PES work. |
-| [#134 convert command](https://github.com/inkstitch/pystitch/issues/134) | Usage confusion: Python code entered in Bash, then missing `import pystitch`. No library fix indicated. Run conversion inside Python after importing pystitch; PNG support also requires Pillow. |
+| [#134 convert command](https://github.com/inkstitch/pystitch/issues/134) | Usage confusion: Python code entered in Bash, then missing `import pystitch`. No library fix indicated. Run conversion inside Python after importing pystitch. |
 | [#128 type errors / DAT crash](https://github.com/inkstitch/pystitch/issues/128) | Fixed and reproduced the DAT crash. Broad typing cleanup remains separate; retain float-capable stitch coordinates. |
 | [#104 PCS dimensions](https://github.com/inkstitch/pystitch/issues/104) | Format decoding/scale claim with proposed implementations but no independently checked fixtures here. Defer rather than change coordinate scaling speculatively. |
 | [#103 JEF centering](https://github.com/inkstitch/pystitch/issues/103) | Requires known-good JEF and hoop metadata comparison. Outside the current Brother/PES path. |
