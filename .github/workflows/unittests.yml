@@ -28,6 +28,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        # Python 3.9 builds are unavailable on newer ubuntu-latest images.
+        # Keep the declared minimum Python version covered on a supported image.
+        exclude:
+          - os: ubuntu-latest
+            python-version: '3.9'
+        include:
+          - os: ubuntu-24.04
+            python-version: '3.9'
 
     steps:
 
@@ -40,15 +48,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Identify precise Python version
-      id: full-python-version
       shell: bash
-      run: echo "dir=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")"  >> $GITHUB_OUTPUT
-
-    - name: Cache Python env for ${{ matrix.os }}-py${{ steps.full-python-version.outputs.version }}
-      uses: actions/cache@v4
-      with:
-        path: ${{ env.pythonLocation }}
-        key: new-${{ matrix.os }}-py${{ steps.full-python-version.outputs.version }}-${{ hashFiles('requirements.txt') }}
+      run: python --version
 
     - name: List environment
       env:
