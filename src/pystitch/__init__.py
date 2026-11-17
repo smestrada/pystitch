@@ -7,6 +7,7 @@ from .EmbConstant import *
 from .EmbFunctions import *
 from .EmbMatrix import EmbMatrix
 from .EmbPattern import EmbPattern
+from .EmbInspection import inspect_pattern
 from .EmbThread import EmbThread
 from .EmbCompress import compress, expand
 import pystitch.GenericWriter as GenericWriter
